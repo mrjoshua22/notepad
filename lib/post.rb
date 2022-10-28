@@ -1,12 +1,20 @@
 class Post
   def initialize
     @created_at = Time.now
-    @text = nil
+    @text = []
+  end
+
+  def self.create(type_index)
+    post_types[type_index].new
+  end
+
+  def self.post_types
+    [Memo, Link, Task]
   end
 
   def file_path
     file_name = @created_at.strftime("#{self.class}_%d-%m-%Y_%H-%M-%S.txt")
-    "#{__dir__}/#{file_name}"
+    "#{__dir__}/../data/#{file_name}"
   end
 
   def read_from_console
