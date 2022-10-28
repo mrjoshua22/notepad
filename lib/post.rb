@@ -12,17 +12,17 @@ class Post
     [Memo, Link, Task]
   end
 
-  def file_path
+  def file_path(path_to_save)
     file_name = @created_at.strftime("#{self.class}_%d-%m-%Y_%H-%M-%S.txt")
-    "#{__dir__}/../data/#{file_name}"
+    Dir.chdir(path_to_save) { |path| "#{path}/#{file_name}" }
   end
 
   def read_from_console
     # todo
   end
 
-  def save
-    File.open(file_path, 'w:UTF-8') do |file|
+  def save(path_to_save)
+    File.open(file_path(path_to_save), 'w:UTF-8') do |file|
       to_strings.each { |string| file.puts(string) }
     end
   end

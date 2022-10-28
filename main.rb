@@ -6,6 +6,8 @@ require_relative 'lib/task'
 puts 'Привет, я твой блокнот!'
 puts 'Что хотите записать в блокнот?'
 
+path_to_save = "#{__dir__}/data/"
+
 choices = Post.post_types
 
 choice = -1
@@ -20,6 +22,6 @@ entry = Post.create(choice)
 
 entry.read_from_console
 
-entry.save
+entry.save(path_to_save)
 
 puts 'Ура, запись сохранена!'
