@@ -1,14 +1,14 @@
 require 'sqlite3'
 
 class Post
-  @@SQLITE_DB_FILE = 'notepad.sqlite'
+  SQLITE_DB_FILE = 'notepad.sqlite'.freeze
 
     def self.create(type)
     post_types[type].new
   end
 
   def self.find(type, limit)
-    db = SQLite3::Database.open(@@SQLITE_DB_FILE)
+    db = SQLite3::Database.open(SQLITE_DB_FILE)
 
     db.results_as_hash = false
 
@@ -17,12 +17,22 @@ class Post
     query += "ORDER BY rowid DESC "
     query += "LIMIT :limit " unless limit.nil?
 
-    statement = db.prepare(query)
+    begin
+      statement = db.prepare(query)
+    rescue SQLite3::SQLException => e
+      puts "Не удалось выполнить запрос в базе #{SQLITE_DB_FILE}"
+      abort e.message
+    end
 
     statement.bind_param('type', type) unless type.nil?
     statement.bind_param('limit', limit) unless limit.nil?
 
-    result = statement.execute!
+    begin
+      result = statement.execute!
+    rescue SQLite3::SQLException => e
+      puts "Не удалось выполнить запрос в базе #{SQLITE_DB_FILE}"
+      abort e.message
+    end
 
     statement.close
     db.close
@@ -31,11 +41,16 @@ class Post
   end
 
   def self.find_by_id(id)
-    db = SQLite3::Database.open(@@SQLITE_DB_FILE)
+    db = SQLite3::Database.open(SQLITE_DB_FILE)
 
     db.results_as_hash = true
 
-    result = db.execute("SELECT * FROM posts WHERE rowid=?", id)
+    begin
+      result = db.execute("SELECT * FROM posts WHERE rowid=?", id)
+    rescue SQLite3::SQLException => e
+      puts "Не удалось выполнить запрос в базе #{SQLITE_DB_FILE}"
+      abort e.message
+    end
 
     db.close
 
@@ -76,14 +91,19 @@ class Post
   end
 
   def save_to_db
-    db = SQLite3::Database.open(@@SQLITE_DB_FILE)
+    db = SQLite3::Database.open(SQLITE_DB_FILE)
     db.results_as_hash = true
   
-    db.execute(
-      "INSERT INTO posts (#{to_db_hash.keys.join(',')}) VALUES " \
-        "(#{('?,'*to_db_hash.size).chop})",
-      to_db_hash.values
-    )
+    begin
+      db.execute(
+        "INSERT INTO posts (#{to_db_hash.keys.join(',')}) VALUES " \
+          "(#{('?,'*to_db_hash.size).chop})",
+        to_db_hash.values
+      )
+    rescue SQLite3::SQLException => e
+      puts "Не удалось выполнить запрос в базе #{SQLITE_DB_FILE}"
+      abort e.message
+    end
 
     insert_row_id = db.last_insert_row_id
 
