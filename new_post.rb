@@ -3,12 +3,10 @@ require_relative 'lib/memo'
 require_relative 'lib/link'
 require_relative 'lib/task'
 
-puts 'Привет, я твой блокнот!'
+puts 'Привет, я твой блокнот! Версия 2 + SQLite'
 puts 'Что хотите записать в блокнот?'
 
-path_to_save = "#{__dir__}/data/"
-
-choices = Post.post_types
+choices = Post.post_types.keys
 
 choice = -1
 
@@ -18,10 +16,10 @@ until (0...choices.size).include?(choice)
   choice = $stdin.gets.to_i
 end
 
-entry = Post.create(choice)
+entry = Post.create(choices[choice])
 
 entry.read_from_console
 
-entry.save(path_to_save)
+id = entry.save_to_db
 
-puts 'Ура, запись сохранена!'
+puts "Ура, запись сохранена, id = #{id}"
