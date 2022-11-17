@@ -7,45 +7,45 @@ class Post
     post_types[type].new
   end
 
-  def self.find(type, id, limit)
+  def self.find(type, limit)
     db = SQLite3::Database.open(@@SQLITE_DB_FILE)
 
-    if id.nil?
-      db.results_as_hash = false
+    db.results_as_hash = false
 
-      query = "SELECT rowid, * FROM posts "
-      query += "WHERE type = :type " unless type.nil?
-      query += "ORDER BY rowid DESC "
-      query += "LIMIT :limit " unless limit.nil?
+    query = "SELECT rowid, * FROM posts "
+    query += "WHERE type = :type " unless type.nil?
+    query += "ORDER BY rowid DESC "
+    query += "LIMIT :limit " unless limit.nil?
 
-      statement = db.prepare(query)
+    statement = db.prepare(query)
 
-      statement.bind_param('type', type) unless type.nil?
-      statement.bind_param('limit', limit) unless limit.nil?
+    statement.bind_param('type', type) unless type.nil?
+    statement.bind_param('limit', limit) unless limit.nil?
 
-      result = statement.execute!
+    result = statement.execute!
 
-      statement.close
-      db.close
+    statement.close
+    db.close
 
-      result
-    else
-      db.results_as_hash = true
+    result
+  end
 
-      result = db.execute("SELECT * FROM posts WHERE rowid=?", id)
+  def self.find_by_id(id)
+    db = SQLite3::Database.open(@@SQLITE_DB_FILE)
 
-      result = result.first if result.is_a?(Array)
+    db.results_as_hash = true
 
-      db.close
+    result = db.execute("SELECT * FROM posts WHERE rowid=?", id)
 
-      if result.empty?
-        puts "Такой id #{id} не найден в базе :("
-      else
-        post = create(result['type'])
-        post.load_data(result)
-        post
-      end
-    end
+    db.close
+
+    return [] if result.empty?
+
+    result = result.first
+    
+    post = create(result['type'])
+    post.load_data(result)
+    post
   end
 
   def self.post_types
